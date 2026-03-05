@@ -64,18 +64,22 @@ async function copyToClipboard(text) {
   }
 }
 
-// ====== API (너의 서버/버셀 API로 교체) ======
-// - 지금은 데모로 "가짜 생성"을 반환
+const API_BASE = "https://writer-ver3-api-git-main-qndys-projects.vercel.app";
+
 async function generateNovel(prompt) {
-  // 실제 연결 시 예시:
-  // const res = await fetch("/api/generate", {
-  //   method: "POST",
-  //   headers: { "Content-Type": "application/json" },
-  //   body: JSON.stringify({ prompt }),
-  // });
-  // if (!res.ok) throw new Error("생성 실패");
-  // const data = await res.json(); // { text: "..." }
-  // return data.text;
+
+  const res = await fetch(`${API_BASE}/api/generate`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ prompt })
+  });
+
+  const data = await res.json();
+
+  return data.text;
+}
 
   await new Promise(r => setTimeout(r, 450));
   return `【DEMO 생성 결과】\n\n${prompt}\n\n—\n여기에 제미나이 결과 텍스트가 들어오게 연결하면 됩니다.`;
@@ -337,4 +341,5 @@ clearHistoryBtn.addEventListener("click", () => {
 renderPresetButtons();
 
 // (선택) 앱 시작 시 최근 기록 1~2개를 본문에 보여주고 싶으면:
+
 // history.slice(0,2).reverse().forEach(h => prependGenerated(h.output));
