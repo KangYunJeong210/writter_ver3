@@ -15,7 +15,7 @@ export default async function handler(req, res) {
     }
 
     const url =
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
+  `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
     const r = await fetch(url, {
       method: "POST",
@@ -43,4 +43,5 @@ export default async function handler(req, res) {
     console.error(e);
     return res.status(500).json({ error: "generation failed" });
   }
+
 }
