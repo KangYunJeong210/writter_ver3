@@ -62,7 +62,6 @@ async function copyToClipboard(text) {
   }
 }
 
-// ====== API Call (same-origin on Vercel) ======
 async function generateNovel(prompt) {
   const res = await fetch("/api/generate", {
     method: "POST",
@@ -71,13 +70,14 @@ async function generateNovel(prompt) {
   });
 
   const data = await res.json().catch(() => ({}));
+
   if (!res.ok) {
-    const msg = data?.error || "generate failed";
-    throw new Error(msg);
+    // ✅ 서버가 준 message를 화면에 띄움
+    throw new Error(data?.message || data?.error || "generate failed");
   }
+
   return data.text || "생성 결과가 없습니다.";
 }
-
 // ====== DOM ======
 const promptInput = document.getElementById("promptInput");
 const presetRow = document.getElementById("presetRow");
@@ -314,4 +314,5 @@ clearHistoryBtn.addEventListener("click", () => {
 });
 
 // ====== Init ======
+
 renderPresetButtons();
