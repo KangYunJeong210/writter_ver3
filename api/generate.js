@@ -14,12 +14,12 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: "Missing GEMINI_API_KEY" });
     }
 
-    // ✅ v1 엔드포인트 사용 (핵심)
-    // 모델이 계정/프로젝트에 따라 다를 수 있어서 2개 후보를 순서대로 시도
+    // ✅ v1 엔드포인트 + 후보 모델 (성공률 높은 순)
     const modelCandidates = [
       "gemini-2.0-flash-lite",
       "gemini-2.0-flash",
-      "gemini-1.5-flash"
+      "gemini-1.5-flash",
+      "gemini-1.5-pro",
     ];
 
     let lastErr = null;
@@ -34,8 +34,8 @@ export default async function handler(req, res) {
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
             temperature: 0.8,
-            maxOutputTokens: 2048
-          }
+            maxOutputTokens: 2048,
+          },
         }),
       });
 
@@ -45,20 +45,30 @@ export default async function handler(req, res) {
         const text =
           data?.candidates?.[0]?.content?.parts?.[0]?.text ??
           "생성 결과가 없습니다.";
+
         return res.status(200).json({ text, model });
       }
 
-      lastErr = { model, status: r.status, data };
+      // 실패 기록
+      lastErr = {
+        triedModel: model,
+        status: r.status,
+        message: data?.error?.message || data?.message || null,
+        raw: data,
+      };
+      console.log("MODEL_TRY_FAILED:", JSON.stringify(lastErr));
     }
 
-    // 여기까지 왔으면 후보 모델 전부 실패
+    // 후보 모델 전부 실패
     return res.status(500).json({
       error: "Gemini request failed for all candidate models",
       lastErr,
     });
-
   } catch (e) {
-    console.error(e);
-    return res.status(500).json({ error: "generation failed", message: e?.message || String(e) });
+    console.error("SERVER_ERROR:", e);
+    return res.status(500).json({
+      error: "generation failed",
+      message: e?.message || String(e),
+    });
   }
 }
