@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>writer_ver3</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <!-- Header -->
+  <header class="app-header">
+    <div class="app-title">writter_ver3</div>
+    <button class="icon-btn" id="openDrawerBtn" aria-label="메뉴 열기">
+      <span class="hamburger"></span>
+    </button>
+  </header>
+
+  <!-- Main -->
+  <main class="app">
+    <!-- Prompt Card -->
+    <section class="card card--primary">
+      <div class="card-head">
+        <h2 class="card-title">프롬프트</h2>
+      </div>
+
+      <label class="sr-only" for="promptInput">프롬프트 입력</label>
+      <textarea id="promptInput" class="textarea" placeholder="프롬프트를 입력하세요."></textarea>
+
+      <div class="preset-row" id="presetRow">
+        <!-- JS로 버튼 렌더 -->
+      </div>
+
+      <div class="action-row">
+        <button class="btn btn--ghost" id="clearPromptBtn">비우기</button>
+        <button class="btn btn--solid" id="generateBtn">생성</button>
+      </div>
+      <p class="hint" id="statusText"></p>
+    </section>
+
+    <!-- Generated Stack -->
+    <section class="stack" id="generatedStack">
+      <!-- 최신 생성물이 위로 prepend -->
+    </section>
+  </main>
+
+  <!-- Drawer Overlay -->
+  <div class="overlay" id="overlay" hidden></div>
+
+  <!-- Drawer -->
+  <aside class="drawer" id="drawer" aria-hidden="true">
+    <div class="drawer-header">
+      <div class="drawer-title">설정</div>
+      <button class="icon-btn" id="closeDrawerBtn" aria-label="메뉴 닫기">✕</button>
+    </div>
+
+    <!-- Preset Editor -->
+    <section class="drawer-section">
+      <h3 class="drawer-section-title">프리셋 수정</h3>
+
+      <div class="preset-editor" id="presetEditor">
+        <!-- JS로 4개 입력 렌더 -->
+      </div>
+
+      <div class="drawer-actions">
+        <button class="btn btn--ghost" id="resetPresetsBtn">기본값</button>
+        <button class="btn btn--solid" id="savePresetsBtn">저장</button>
+      </div>
+      <p class="hint" id="presetSaveHint"></p>
+    </section>
+
+    <!-- History List -->
+    <section class="drawer-section">
+      <h3 class="drawer-section-title">최근 생성 기록 (최대 10개)</h3>
+      <ul class="history" id="historyList">
+        <!-- JS로 렌더 -->
+      </ul>
+
+      <div class="drawer-actions">
+        <button class="btn btn--ghost" id="clearHistoryBtn">기록 삭제</button>
+      </div>
+      <p class="hint">리스트 항목을 누르면 해당 결과가 위에 다시 쌓입니다.</p>
+    </section>
+  </aside>
+
+  <script src="app.js"></script>
+</body>
+</html>
