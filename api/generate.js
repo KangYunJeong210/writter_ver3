@@ -1,7 +1,4 @@
 export default async function handler(req, res) {
-  // CORS 필요 없음(같은 도메인에서만 쓸 거라)
-  // res.setHeader("Access-Control-Allow-Origin", "*");
-
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
@@ -13,60 +10,55 @@ export default async function handler(req, res) {
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
-    const hasKey = !!apiKey;
-
-    // ✅ 키가 들어갔는지부터 로그로 확정
-    console.log("HAS_GEMINI_KEY:", hasKey);
-
     if (!apiKey) {
       return res.status(500).json({ error: "Missing GEMINI_API_KEY" });
     }
 
-    const url =
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    // ✅ v1 엔드포인트 사용 (핵심)
+    // 모델이 계정/프로젝트에 따라 다를 수 있어서 2개 후보를 순서대로 시도
+    const modelCandidates = [
+      "gemini-2.0-flash-lite",
+      "gemini-2.0-flash",
+      "gemini-1.5-flash"
+    ];
 
-    const r = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          temperature: 0.8,
-          maxOutputTokens: 2048
-        }
-      }),
-    });
+    let lastErr = null;
 
-    const data = await r.json().catch(() => ({}));
+    for (const model of modelCandidates) {
+      const url = `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey}`;
 
-    // ✅ Gemini가 뭐라고 거절했는지 그대로 내려보내기
-    if (!r.ok) {
-      console.log("GEMINI_ERROR_STATUS:", r.status);
-      console.log("GEMINI_ERROR_BODY:", JSON.stringify(data));
-
-      const message =
-        data?.error?.message ||
-        data?.message ||
-        JSON.stringify(data);
-
-      return res.status(500).json({
-        error: "Gemini request failed",
-        status: r.status,
-        message,
-        raw: data
+      const r = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.8,
+            maxOutputTokens: 2048
+          }
+        }),
       });
+
+      const data = await r.json().catch(() => ({}));
+
+      if (r.ok) {
+        const text =
+          data?.candidates?.[0]?.content?.parts?.[0]?.text ??
+          "생성 결과가 없습니다.";
+        return res.status(200).json({ text, model });
+      }
+
+      lastErr = { model, status: r.status, data };
     }
 
-    const text =
-      data?.candidates?.[0]?.content?.parts?.[0]?.text ??
-      "생성 결과가 없습니다.";
-
-    return res.status(200).json({ text });
-  } catch (e) {
-    console.error("SERVER_ERROR:", e);
+    // 여기까지 왔으면 후보 모델 전부 실패
     return res.status(500).json({
-      error: "generation failed",
-      message: e?.message || String(e),
+      error: "Gemini request failed for all candidate models",
+      lastErr,
     });
+
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ error: "generation failed", message: e?.message || String(e) });
   }
 }
